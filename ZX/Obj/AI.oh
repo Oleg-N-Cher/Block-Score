@@ -1,0 +1,20 @@
+/* Ofront+ 1.0 -sx3 -21 */
+
+#ifndef AI__oh
+#define AI__oh
+
+#include "SYSTEM.oh"
+
+
+
+
+import void AI_A4 (CHAR cd_);
+import void AI_Av (void);
+import void AI_Bc (void);
+import BOOLEAN AI_Bf (CHAR n);
+import CHAR AI_Cell (CHAR x, CHAR y);
+import void AI_Init (CHAR c);
+#define AI__init()
+
+
+#endif

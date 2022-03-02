@@ -1,0 +1,12 @@
+MainMod=BlockScore
+CodeAdr=25000
+DataAdr=60000
+Options=--reserve-regs-iy
+Modules=AI.rel Rsrc.rel
+Include=
+Libraries=
+Target=TAP
+OfrontPar=-sx3 -21
+Clean=TRUE
+Start=TRUE
+Pause=FALSE

@@ -1,0 +1,64 @@
+MODULE BlockScore; (*$MAIN*)
+IMPORT SYSTEM, AI, b := Basic, g := Laser2, Rsrc, w := NewSupercode;
+
+TYPE
+  BYTE = SYSTEM.BYTE;
+
+PROCEDURE ShowBall (x, y, color: BYTE);
+BEGIN
+  IF color # 0 THEN g.PTBL(x*2, y*2, Rsrc.Ball) END;
+  IF ODD(x) = ODD(y) THEN b.COLOR(b.Paper*b.Green + color);
+  ELSE b.COLOR(b.Paper*b.Cyan + color);
+  END;
+  g.SETV(x*2, y*2, 2, 2);
+END ShowBall;
+
+PROCEDURE ShowBoard;
+  VAR x, y: BYTE;
+BEGIN
+  FOR y := 0 TO 11 DO
+    FOR x := 0 TO 15 DO
+      ShowBall(x, y, AI.Cell(x, y));
+    END;
+  END;
+END ShowBoard;
+
+PROCEDURE MainMenu;
+BEGIN
+  b.COLOR(b.Paper*b.LightGray + b.Blue);
+  b.CLS; b.BORDER(b.Blue);
+  b.COLOR(b.Bright + b.Paper*b.Blue + b.White);
+  w.LITERY(4, 0, 2, 3, 7, "Block & Score (TM)");
+  b.COLOR(b.Paper*b.LightGray + b.Blue);
+  w.LITERY(35,  40, 2, 2, 8, "New Game");
+  w.LITERY(35,  70, 2, 2, 8, "High Scores");
+  w.LITERY(35, 100, 2, 2, 8, "Credits");
+  w.LITERY(35, 130, 2, 2, 8, "About");
+  w.LITERY(35, 160, 2, 2, 8, "Exit");
+  b.PAUSE(0);
+END MainMenu;
+
+PROCEDURE LevelMenu;
+BEGIN
+  b.COLOR(b.Paper*b.LightGray + b.Blue);
+  b.CLS; b.BORDER(b.Blue);
+  b.COLOR(b.Bright + b.Paper*b.Blue + b.White);
+  w.LITERY(0, 0, 2, 3, 9, "  Select Game  ");
+  b.COLOR(b.Paper*b.LightGray + b.Blue);
+  w.LITERY(35,  45, 2, 2, 8, "Beginner");
+  w.LITERY(35,  80, 2, 2, 8, "Intermediate");
+  w.LITERY(35, 115, 2, 2, 8, "Expert");
+  w.LITERY(35, 150, 2, 2, 8, "Demo");
+  b.PAUSE(0);
+END LevelMenu;
+
+BEGIN
+  b.Init; MainMenu; g.SPRTa(Rsrc.Sprites); g.ATOF;
+  b.RANDOMIZE(0); b.CLS; b.BORDER(0);
+  AI.Init(2); IF AI.Bf(1) THEN END;
+  LOOP
+    ShowBoard; b.PAUSE(0);
+    AI.A4(1); AI.Av;
+  END;
+  b.Quit
+END BlockScore.

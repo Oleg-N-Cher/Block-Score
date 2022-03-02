@@ -1,0 +1,1122 @@
+MODULE [noinit] AI; IMPORT SYSTEM, b := Basic;
+
+TYPE
+  BYTE = SYSTEM.BYTE;
+  CARR = ARRAY 23 OF BYTE;
+
+CONST
+  Man = b.Blue; Cpu = b.Red;
+
+  C3 = CARR(
+    7, 8, 9, 10, 9, 10, 7, 8, 9, 7, 8, 9, 10, 7, 8, 9, 10, 8, 9, 7, 8, 9, 10 );
+  C4 = CARR(
+    2, 2, 2, 3, 4, 5, 6, 6, 6, 8, 8, 8, 8, 10, 10, 10, 10, 11, 12, 13, 13, 13, 13 );
+  C5 = CARR(
+    2, 1, 4, 3, 2, 1, 3, 2, 4, 4, 1, 1, 3, 2, 4, 3, 2, 1, 4, 4, 3, 2, 1 );
+  C6 = CARR(
+    2, 2, 3, 3, 4, 4, 6, 6, 7, 8, 7, 8, 9, 9, 11, 11, 11, 11, 12, 13, 13, 13, 13 );
+(*
+    static {
+        c6 = new int[] { 2, 2, 3, 3, 4, 4, 6, 6, 7, 8, 7, 8, 9, 9, 11, 11, 11, 11, 12, 13, 13, 13, 13 };
+        c5 = new int[] { 2, 1, 4, 3, 2, 1, 3, 2, 4, 4, 1, 1, 3, 2, 4, 3, 2, 1, 4, 4, 3, 2, 1 };
+        c4 = new int[] { 2, 2, 2, 3, 4, 5, 6, 6, 6, 8, 8, 8, 8, 10, 10, 10, 10, 11, 12, 13, 13, 13, 13 };
+        c3 = new int[] { 7, 8, 9, 10, 9, 10, 7, 8, 9, 7, 8, 9, 10, 7, 8, 9, 10, 8, 9, 7, 8, 9, 10 };
+        c2 = new int[] { 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 105 };
+        cg = new String[] { "Block and Score(TM) Soccer Demo Mode.", "Read these hints and then watch the demonstration game", "to learn about the game and improve your skill.", "Kick your ball into your opponent's goal to score big points.", "You can't kick over another ball, you must go around it.", "You may need to set your ball up for your next turn to score.", "You may block your opponent by positioning your ball in the way of the goal.", "Balls kicked off the side of the field are lost.", "You can strategically use 1 ball to tie up 3 of your opponent's balls.", "Push into the ball going Up to kick upwards.", "Push into the ball going Left to kick to the left.", "Push into the ball going Right to kick to the right.", "Press any key to exit." };
+    }
+*)
+
+VAR
+(*     public final boolean bj() {
+        if (!i.h.b()) {
+            return false;
+        }
+        this.bj = new int[192];
+        this.cl = new int[192];
+        this.ck = new int[192];
+        this.cj = new int[256];
+        this.ci = new int[256];
+        return true;
+    } *)
+  cell, cl, ck: ARRAY 192 OF BYTE;
+  cj, ci: ARRAY 256 OF BYTE;
+  b5, b6, b7, b8, b9: BYTE;
+  bm, bn, bo, bp, bq, br, bs, bt: BYTE;
+  c_, ca, cb, cd, ce, cf, ch , cr: BYTE;
+  c0: INT16; (* public long c0; *)
+(*
+
+public class i implements Runnable
+{
+    public static final int[] c6;
+    public static final int[] c5;
+    public static final int[] c4;
+    public static final int[] c3;
+    public static final int[] c2;
+    public long c1;
+
+    public boolean cz;
+    public boolean cy;
+    public boolean cx;
+    public boolean cw;
+    public boolean cv;
+    public boolean cu;
+    public boolean ct;
+    public boolean cs;
+    public static a h;
+    public Form cq;
+    public Random cp;
+    public TextField co;
+    public String cn;
+    public int cm;
+    public int[] bj;
+    public int[] cl;
+    public int[] ck;
+    public int[] cj;
+    public int[] ci;
+    public static final String[] cg;
+
+    public int cc;
+    public int cb;
+    public int ca;
+    public int b9;
+    public int b8;
+    public int b7;
+    public int b6;
+    public int b5;
+    public int b4;
+    public int b3;
+    public int b2;
+    public int b1;
+    public int b0;
+    public int b_;
+    public int bz;
+    public int by;
+    public int bx;
+    public int bw;
+    public int bv;
+    public int bu;
+    public boolean s;
+    public boolean bl;
+    
+    public i() {
+        this.cm = -1;
+        this.ch = 0;
+        this.bn = 100;
+        this.s = true;
+        this.bl = true;
+        this.cn = new String("Player");
+        i.h = new a();
+        this.cp = new Random();
+        this.co = new TextField((String)null, "Player", 6, 0);
+        ((Displayable)(this.cq = new Form((String)null))).addCommand(Main.ag);
+        ((Displayable)this.cq).setCommandListener(Main.a2.x);
+    }
+
+    public final void bi() {
+        final String trim = this.co.getString().replace('\n', ' ').trim();
+        if (trim.length() != 0) {
+            this.cn = trim;
+        }
+        i.h.j(this.cn);
+        i.h.e(this.cm, this.cn);
+    }
+    
+    public final void bh(final int n) {
+        Main.a2.ap = true;
+        this.i(n);
+        Main.az.setCurrent((Displayable)Main.a0);
+    }
+*)
+
+PROCEDURE A0 (bn_: BYTE);
+BEGIN
+  (* !!! Main.a0.a5 = true; *)
+  bo := 0; bn := bn_;
+END A0;
+
+PROCEDURE As (n: INT16): INT16;
+BEGIN
+  RETURN b.RNDW(0, n - 1)
+END As;
+
+PROCEDURE A5 (x, y: BYTE): INT8;
+BEGIN
+  IF x = 4 THEN RETURN y END;
+  IF x = 3 THEN RETURN -y END;
+  RETURN 0;
+END A5;
+
+PROCEDURE A6 (x, y: BYTE): INT8;
+BEGIN
+  IF x = 2 THEN RETURN y END;
+  IF x = 1 THEN RETURN -y END;
+  RETURN 0;
+END A6;
+
+PROCEDURE A7 (x, y: BYTE): INT16; (* !!! 10000 *)
+BEGIN
+  IF (x >= 16) OR (y >= 12) OR (cl[y*16 + x] = 0) THEN
+    RETURN 10000
+  END;
+  RETURN cl[y*16 + x]
+END A7;
+
+PROCEDURE Ax;
+BEGIN
+  (* !!! IF c0 = 0 THEN c0 := System.currentTimeMillis() END; *)
+END Ax;
+
+PROCEDURE Ba (x, y: BYTE): BYTE;
+BEGIN
+  RETURN cl[y*16 + x]
+END Ba;
+
+PROCEDURE Cell* (x, y: BYTE): BYTE;
+BEGIN
+  RETURN cell[y*16 + x];
+END Cell;
+
+PROCEDURE SetCell (x, y, c: BYTE);
+BEGIN
+  cell[y*16 + x] := c;
+END SetCell;
+
+PROCEDURE Init* (c: BYTE);
+  VAR balls, n, x, y: BYTE;
+BEGIN
+  (* !!! i.h.i(); *)
+  A0(5);
+  bm := 0;
+  bt := 1;
+  c_ := c;
+  bs := 0;
+  br := 1;
+  cd := 3;
+  cf := 8;
+  ce := 11;
+  n := 0;
+  bp := 0;
+  bq := 0;
+  FOR n := 0 TO 191 DO cell[n] := 0 END;
+  balls := 14;
+  REPEAT
+    x := b.RND(1, 14); y := b.RND(1, 4);
+    IF (Cell(x, y) = 0)
+      & (Cell(x - 1, y) = 0) OR (Cell(x + 1, y) = 0)
+      & (Cell(x, y - 1) = 0) OR (Cell(x, y + 1) = 0)
+    THEN
+      n := 0;
+      IF Cell(x - 1, y - 1) # 0 THEN INC(n) END;
+      IF Cell(x, y - 1)     # 0 THEN INC(n) END;
+      IF Cell(x + 1, y - 1) # 0 THEN INC(n) END;
+      IF Cell(x - 1, y)     # 0 THEN INC(n) END;
+      IF Cell(x + 1, y)     # 0 THEN INC(n) END;
+      IF Cell(x - 1, y + 1) # 0 THEN INC(n) END;
+      IF Cell(x, y + 1)     # 0 THEN INC(n) END;
+      IF Cell(x + 1, y + 1) # 0 THEN INC(n) END;
+      IF n < 3 THEN
+        SetCell(x, y, Cpu); SetCell(x, 12 - y - 1, Man);
+        DEC(balls);
+      END;
+    END;
+  UNTIL balls = 0;
+  IF c_ = 3 THEN ch := 0; A0(53) END;
+  (* !!! c1 := System.currentTimeMillis(); *)
+  c0 := 0; Ax;
+END Init;
+
+PROCEDURE A8 (x, y: BYTE): BYTE;
+BEGIN
+  IF (x < 16) & (y < 12) THEN
+    RETURN ck[y*16 + x]
+  END;
+  RETURN 0
+END A8;
+
+PROCEDURE Bg;
+  VAR n, x, y: BYTE; exit: BOOLEAN;
+BEGIN
+  FOR n := 0 TO 191 DO cl[n] := 0 END;
+  cl[ce*16 + cf] := 1;
+  n := 1;
+  REPEAT
+    INC(n);
+    exit := FALSE;
+    ck := cl; (* Copy array *)
+    FOR y := 0 TO 11 DO
+      FOR x := 0 TO 15 DO
+        IF (ck[y*16 + x] = 0) & (Cell(x, y) = 0) &
+          ((A8(x - 1, y) > 0) OR (A8(x + 1, y) > 0) OR (A8(x, y - 1) > 0) OR (A8(x, y + 1) > 0))
+        THEN
+          cl[y*16 + x] := n; exit := TRUE;
+        END;
+      END;
+    END;
+  UNTIL exit;
+END Bg;
+
+PROCEDURE Bf* (n: BYTE): BOOLEAN;
+  VAR x, y: BYTE;
+BEGIN
+  cf := 8;
+  IF n = 0 THEN ce := 0 ELSE ce := 11 END;
+  Bg;
+  FOR y := 1 TO 10 DO
+    FOR x := 1 TO 14 DO
+      IF Cell(x, y) = n + 1 THEN
+        IF (Ba(x - 1, y) > 0) & (Cell(x + 1, y) = 0) THEN
+          RETURN TRUE
+        END;
+        IF (Ba(x + 1, y) > 0) & (Cell(x - 1, y) = 0) THEN
+          RETURN TRUE
+        END;
+        IF n = 0 THEN
+          IF (Ba(x, y + 1) > 0) & (Cell(x, y - 1) = 0) THEN
+            RETURN TRUE
+          END;
+        ELSIF (Ba(x, y - 1) > 0) & (Cell(x, y + 1) = 0) THEN
+          RETURN TRUE
+        END;
+      END;
+    END;
+  END;
+  RETURN FALSE
+END Bf;
+
+PROCEDURE A9 (x, y: BYTE): BYTE;
+BEGIN
+  IF (x < 16) & (y < 12) THEN
+    RETURN cell[y*16 + x]
+  END;
+  RETURN 3
+END A9;
+
+PROCEDURE Be (x, y: BYTE; dx, dy: INT8): BYTE;
+  VAR n5: INT8;
+BEGIN
+  n5 := -1;
+  REPEAT INC(n5); INC(x, dx); INC(y, dy) UNTIL A9(x, y) # 0;
+  IF (y = 0) OR (y >= 11) THEN INC(n5, 5) END;
+  RETURN n5
+END Be;
+
+PROCEDURE Bd;
+  VAR
+    be, cc, i, j, k, n, n3: BYTE; n2: INT8;
+    ba, be2, be3, be4, be5, be6, be7, n5, n7, n9, n10: BYTE;
+    n4, n6, n8: INT16;
+BEGIN
+  Bg;
+  IF bt = 0 THEN n := 2 ELSE n := 1 END;
+  IF bt > 0 THEN n2 := 1 ELSE n2 := -1 END;
+  n3 := 0;
+  FOR i := 1 TO 10 DO
+    FOR j := 1 TO 14 DO
+      IF Cell(j, i) = bt + 1 THEN
+        IF Ba(j, i - n2) > 0 THEN
+          be := Be(j, i, 0, n2);
+          IF be > 0 THEN
+            IF (c_ >= 2) & (A9(j, i + n2 * (be + 1)) = n) & (((A9(j - 1, i + n2 * be) = n) & (A9(j - 1, i + n2 * (be + 1)) = n)) OR ((A9(j + 1, i + n2 * be) = n) & (A9(j + 1, i + n2 * (be + 1)) = n)))
+            THEN
+              n4 := be * 10 + 5000;
+            ELSIF c_ > 0 THEN
+              n4 := be * 10 + 1000;
+            ELSE
+              n4 := As(500) + 500;
+            END;
+            IF n3 < n4 THEN
+              cj[0] := j;
+              ci[0] := i;
+              cj[1] := j;
+              ci[1] := i - n2;
+              n3 := n4;
+            END;
+          END (*IF*);
+        END (*IF*);
+        IF Ba(j - 1, i) > 0 THEN
+          be2 := Be(j, i, 1, 0);
+          IF be2 > 0 THEN
+            IF c_ = 0 THEN
+              n5 := As(1000) + 1;
+            ELSIF (j + be2 >= 15) OR (Ba(j + be2, i - n2) = 0) OR (Cell(j + be2, i + n2) > 0) THEN
+              n5 := 1;
+            ELSE
+              be3 := Be(j, i, 0, n2);
+              be4 := Be(j + be2, i, 0, n2);
+              IF A9(j, i + n2 * (be3 + 1)) = n THEN
+                IF (c_ >= 2) & (((A9(j + be2 - 1, i + n2 * be3) = n) &
+                   (A9(j + be2 - 1, i + n2 * (be3 + 1)) = n) OR
+                   ((A9(j + be2 + 1, i + n2 * be3) = n) & (A9(j + be2 + 1, i + n2 * (be3 + 1)) = n))))
+                THEN
+                  n6 := 2000;
+                ELSIF (c_ > 0) & (A9(j, i + n2 * (be3 + 2)) = n) THEN
+                  n6 := 500;
+                ELSE
+                  n6 := 5;
+                END;
+              ELSE
+                n6 := 1000;
+              END;
+              n5 := n6 + be4 * 10;
+            END;
+            IF n3 < n5 THEN
+              cj[0] := j;
+              ci[0] := i;
+              cj[1] := j - 1;
+              ci[1] := i;
+              n3 := n5;
+            END;
+          END;
+        END;
+        IF Ba(j + 1, i) > 0 THEN
+          be5 := Be(j, i, -1, 0);
+          IF be5 > 0 THEN
+            IF c_ = 0 THEN
+              n7 := As(1000) + 1;
+            ELSIF (j - be5 <= 0) OR (Ba(j - be5, i - n2) = 0) OR (Cell(j - be5, i + n2) > 0) THEN
+              n7 := 1;
+            ELSE
+              be6 := Be(j, i, 0, n2);
+              be7 := Be(j - be5, i, 0, n2);
+              IF A9(j, i + n2 * (be6 + 1)) = n THEN
+                IF (c_ >= 2) & (((A9(j - be5 - 1, i + n2 * be6) = n) &
+                   (A9(j - be5 - 1, i + n2 * (be6 + 1)) = n)) OR
+                   (A9(j - be5 + 1, i + n2 * be6) = n) & (A9(j - be5 + 1, i + n2 * (be6 + 1)) = n))
+                THEN
+                  n8 := 2000;
+                ELSE
+                  IF (c_ > 0) & (A9(j, i + n2 * (be6 + 2)) = n) THEN
+                    n8 := 500;
+                  ELSE
+                    n8 := 5;
+                  END;
+                END;
+              ELSE
+                n8 := 1000;
+              END;
+              n7 := n8 + be7 * 10;
+            END (*IF*);
+            IF n3 < n7 THEN
+              cj[0] := j;
+              ci[0] := i;
+              cj[1] := j + 1;
+              ci[1] := i;
+              n3 := n7;
+            END;
+          END;
+        END;
+      END (*IF*);
+    END (*FOR j*);
+  END (*FOR i*);
+  FOR k := 0 TO 191 DO ck[k] := cl[k] END;
+  n9 := cj[1];
+  n10 := ci[1];
+  cc := 2;
+  LOOP LOOP
+    ba := Ba(n9, n10);
+    cj[cc] := n9;
+    ci[cc] := n10;
+    INC(cc);
+    IF A7(n9 - 1, n10) < ba THEN
+      DEC(n9);
+    ELSIF A7(n9 + 1, n10) < ba THEN
+      INC(n9);
+    ELSIF A7(n9, n10 - 1) < ba THEN
+      DEC(n10);
+    ELSE
+      IF A7(n9, n10 + 1) >= ba THEN
+        EXIT
+      END;
+      INC(n10);
+    END;
+    IF Ba(n9, n10) = 1 THEN RETURN END;
+  END END
+END Bd;
+
+PROCEDURE Bc*;
+BEGIN
+  bt := ORD(bt = 0);
+  IF ~Bf(bt) THEN
+    IF ~Bf(ORD(bt = 0)) THEN
+      IF bq = bp THEN bm := 1;
+      ELSIF bq > bp THEN bm := 2;
+      ELSE bm := 3;
+      END;
+      A0(7);
+    ELSE
+      A0(6);
+    END;
+  ELSE
+    A0(2);
+    cr := 0;
+    IF bt > 0 THEN cd := 4 ELSE cd := 3 END;
+    cf := 8;
+    IF bt > 0 THEN ce := 0 ELSE ce := 11 END;
+    IF (bt = br) OR (c_ = 3) THEN Bd END;
+  END;
+END Bc;
+
+(*    
+    public final void p() {
+        new Thread(this).start();
+    }
+    
+    public final void o() {
+        this.s = true;
+    }
+    
+    public final void run() {
+        this.s = false;
+        while (!this.s) {
+            Main.a2.s();
+            if (this.bl) {
+                try {
+                    Thread.currentThread();
+                    Thread.sleep(100L);
+                }
+                catch (Exception ex) {}
+            }
+            else {
+                this.av();
+                if (this.bl) {
+                    continue;
+                }
+                ((Canvas)Main.a0).repaint();
+                int n = 0;
+                switch (this.bn) {
+                    case 3: {
+                        n = 150;
+                        break;
+                    }
+                    case 2:
+                    case 4:
+                    case 101: {
+                        n = 75;
+                        break;
+                    }
+                    case 102: {
+                        n = 500;
+                        break;
+                    }
+                    default: {
+                        n = 250;
+                        break;
+                    }
+                }
+                try {
+                    Thread.currentThread();
+                    Thread.sleep(n);
+                }
+                catch (Exception ex2) {}
+                ((Canvas)Main.a0).serviceRepaints();
+            }
+        }
+    }
+*)
+
+PROCEDURE A4* (cd_: BYTE);
+  VAR a6, a8, a9, n, n2, n3: BYTE; a7: INT8;
+BEGIN
+  cd := cd_;
+  a6 := A6(cd_, 1);
+  a7 := A5(cd_, 1);
+  n := cf + a6;
+  n2 := ce + a7;
+  IF (*n < 0 ||*) (n >= 16) (* || n2 < 0 *) OR (n2 >= 12) THEN
+    RETURN
+  END;
+  a8 := A9(n, n2);
+  IF a8 = 0 THEN
+    cf := n;
+    ce := n2;
+  ELSIF a8 = bt + 1 THEN
+    IF (bt = 0) & (a7 = 1) OR (bt = 1) & (a7 = -1) THEN
+      A0(52);
+      RETURN
+    END;
+    IF A9(n + a6, n2 + a7) > 0 THEN
+      A0(51);
+      RETURN
+    END;
+    cb := n;
+    ca := n2;
+    n3 := 0;
+    LOOP
+      INC(n3);
+      INC(n, a6);
+      INC(n2, a7);
+      IF (n < -1) OR (n > 16) OR (n2 < 0) THEN
+        EXIT
+      END;
+      IF n2 >= 12 THEN
+        EXIT
+      END;
+      a9 := A9(n, n2);
+      IF ~((a9 = 0) OR (a9 = 3)) THEN EXIT END;
+    END;
+    IF n3 > 1 THEN
+      A0(4);
+      b7 := a8;
+      b5 := n3 - 1;
+      b6 := b5 * 3;
+      b9 := cb + (n3 - 1) * a6;
+      b8 := ca + (n3 - 1) * a7;
+      cell[ca * 16 + cb] := 0;
+    END;
+  ELSE
+    A0(50);
+  END;
+END A4;
+
+(*    public final void a3(final int n) {
+        if (n == 53) {
+            switch (this.bn) {
+                case 6: {
+                    this.a0(5);
+                    return;
+                }
+                case 7: {
+                    this.a_();
+                    return;
+                }
+                case 50:
+                case 51:
+                case 52: {
+                    this.a0(1);
+                    this.cr = 0;
+                    return;
+                }
+                case 53: {
+                    ++this.ch;
+                    if (this.ch < 13) {
+                        this.a0(53);
+                    }
+                    else {
+                        this.a0(5);
+                    }
+                    return;
+                }
+                case 101: {
+                    this.b0 = 23;
+                    this.b_ = 23;
+                    this.a0(102);
+                    return;
+                }
+                case 102: {
+                    this.az(false);
+                    return;
+                }
+            }
+        }
+        if (this.c_ == 3 && this.bn != 53 && this.bn != 6 && this.bn != 7 && this.bn != 50 && this.bn != 51 && this.bn != 52 && (n == 48 || n == 49 || n == 50 || n == 51 || n == 52 || n == 53 || n == 54 || n == 55 || n == 56 || n == 57 || n == 42 || n == 35 || n == ((Canvas)Main.a0).getKeyCode(2) || n == ((Canvas)Main.a0).getKeyCode(5) || n == ((Canvas)Main.a0).getKeyCode(1) || n == ((Canvas)Main.a0).getKeyCode(6) || n == ((Canvas)Main.a0).getKeyCode(8))) {
+            Main.a2.ap = false;
+            this.bn = 100;
+            Main.a_.m(3);
+            Main.a_.k();
+            return;
+        }
+        if (this.bn == 2 && this.bo < 8) {
+            this.bo = 8;
+        }
+        if (n == ((Canvas)Main.a0).getKeyCode(2)) {
+            this.cy = true;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(5)) {
+            this.cz = true;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(1)) {
+            this.cx = true;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(6)) {
+            this.cw = true;
+        }
+        else if (n == 50) {
+            this.cv = true;
+        }
+        else if (n == 52) {
+            this.cu = true;
+        }
+        else if (n == 54) {
+            this.ct = true;
+        }
+        else if (n == 56) {
+            this.cs = true;
+        }
+        if (this.bn == 1) {
+            if (this.bt == this.br && this.c_ != 3) {
+                return;
+            }
+            if (this.cy || this.cu) {
+                this.cr = ((this.bt == 0) ? 1 : 2);
+            }
+            else if (this.cz || this.ct) {
+                this.cr = ((this.bt == 0) ? 2 : 1);
+            }
+            else if (this.cx || this.cv) {
+                this.cr = ((this.bt == 0) ? 3 : 4);
+            }
+            else if (this.cw || this.cs) {
+                this.cr = ((this.bt == 0) ? 4 : 3);
+            }
+        }
+    }
+    
+    public final void a2(final int n) {
+        if (n == ((Canvas)Main.a0).getKeyCode(2)) {
+            this.cy = false;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(5)) {
+            this.cz = false;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(1)) {
+            this.cx = false;
+        }
+        else if (n == ((Canvas)Main.a0).getKeyCode(6)) {
+            this.cw = false;
+        }
+        else if (n == 50) {
+            this.cv = false;
+        }
+        else if (n == 52) {
+            this.cu = false;
+        }
+        else if (n == 54) {
+            this.ct = false;
+        }
+        else if (n == 56) {
+            this.cs = false;
+        }
+    }
+    
+    private final void a1(final int n) {
+        if (this.b0 >= 22 && this.b_ >= 22) {
+            this.b0 = 23;
+            this.b_ = 23;
+            this.a0(102);
+            return;
+        }
+        if (n == 0) {
+            ++this.b0;
+            if (this.b0 >= 23) {
+                return;
+            }
+            this.bz = i.c6[this.b0];
+            this.bx = -1;
+            this.b4 = i.c5[this.b0] + 1;
+            this.bv = 4;
+            this.b2 = 0;
+        }
+        else {
+            ++this.b_;
+            if (this.b_ >= 23) {
+                return;
+            }
+            this.by = i.c4[this.b_];
+            this.bw = 12;
+            this.b3 = 12 - i.c3[this.b_];
+            this.bu = 3;
+            this.b1 = 0;
+        }
+        this.a0(101);
+    }
+    
+    private final void a_() {
+        if (this.c_ < 3 && ((this.bm == 2 && this.bs == 0) || (this.bm == 3 && this.bs == 1))) {
+            for (int i = 0; i < 192; ++i) {
+                this.bj[i] = 0;
+            }
+            final int n = -1;
+            this.b_ = n;
+            this.b0 = n;
+            this.a1(0);
+            this.a1(1);
+        }
+        else {
+            this.az(false);
+        }
+    }
+    
+    public final void az(final boolean b) {
+        this.bl = true;
+        Main.a2.ap = false;
+        this.bn = 100;
+        if (this.c_ == 3) {
+            Main.a_.m(3);
+            Main.az.setCurrent((Displayable)Main.a_);
+            return;
+        }
+        this.cm = i.h.g();
+        String s;
+        if (b) {
+            s = "Score: " + i.h.c() + "\n" + "This is #" + (this.cm + 1) + "\nEnter your name:";
+        }
+        else {
+            String s2 = null;
+            switch (this.bm) {
+                case 2: {
+                    s2 = ((this.bs == 0) ? "You WIN!" : "Team CPU wins.");
+                    break;
+                }
+                case 3: {
+                    s2 = ((this.bs == 1) ? "You WIN!" : "Team CPU wins.");
+                    break;
+                }
+                default: {
+                    s2 = "Draw.";
+                    break;
+                }
+            }
+            String s3;
+            if (this.bs == 0) {
+                s3 = s2 + "\nYour score: " + this.bq + "\nOpponent: " + this.bp + "\n";
+            }
+            else {
+                s3 = s2 + "\nYour score: " + this.bp + "\nOpponent: " + this.bq + "\n";
+            }
+            if (this.cm >= 0 && this.cm < 5) {
+                s3 = s3 + "Your score is the #" + (this.cm + 1);
+            }
+            s = s3 + ((this.cm >= 0) ? "\nEnter your name:" : "You didn't place in the Top 5 this time.\nTry again!");
+        }
+        while (this.cq.size() > 0) {
+            this.cq.delete(0);
+        }
+        final String[] bk = j.bk(s);
+        final Image image = Image.createImage(120, h.ba + h.a6 * bk.length);
+        final Graphics graphics = image.getGraphics();
+        h.y(graphics, "Block and Score(TM)");
+        graphics.setColor(65280);
+        graphics.fillRect(0, h.ba, 120, h.a6 * bk.length);
+        graphics.setFont(h.a7);
+        graphics.setClip(0, h.ba, 120, h.a6 * bk.length);
+        for (int ba = h.ba, i = 0; i < bk.length; ++i, ba += h.a6) {
+            if (!b) {
+                if (i == 1) {
+                    graphics.setColor(16777215);
+                }
+                else if (i == 2) {
+                    graphics.setColor(16776960);
+                }
+                else {
+                    graphics.setColor(0);
+                }
+            }
+            else {
+                graphics.setColor(0);
+            }
+            graphics.drawString(bk[i], 60, ba, 17);
+        }
+        this.cq.append(Image.createImage(image));
+        System.gc();
+        ((Displayable)this.cq).removeCommand(Main.af);
+        if (this.cm >= 0) {
+            this.co = new TextField((String)null, this.cn, 6, 0);
+            this.cq.append((Item)this.co);
+            ((Displayable)this.cq).addCommand(Main.af);
+        }
+        Main.az.setCurrent((Displayable)this.cq);
+    }
+    
+    public final void ay() {
+        i.h.f();
+        this.o();
+    }
+    
+    public final void aw() {
+        if (this.c0 > 0L) {
+            final long n = System.currentTimeMillis() - this.c0;
+            if (n > 0L) {
+                this.c1 += n;
+            }
+            this.c0 = 0L;
+        }
+    }
+*)
+
+PROCEDURE Av*;
+BEGIN (*
+        final long n = System.currentTimeMillis() - this.c1;
+        this.c1 = System.currentTimeMillis();
+        switch (this.bn) {
+            case 1: {
+                if (this.bt == this.br || this.c_ == 3) {
+                    if (this.cc-- <= 0) {
+                        break;
+                    }
+                    if (this.cj[this.cc] < this.cf) {
+                        this.a4(1);
+                        break;
+                    }
+                    if (this.cj[this.cc] > this.cf) {
+                        this.a4(2);
+                        break;
+                    }
+                    if (this.ci[this.cc] < this.ce) {
+                        this.a4(3);
+                        break;
+                    }
+                    if (this.ci[this.cc] > this.ce) {
+                        this.a4(4);
+                        break;
+                    }
+                    break;
+                }
+                else {
+                    if (this.cy || this.cu) {
+                        this.cr = ((this.bt == 0) ? 1 : 2);
+                    }
+                    else if (this.cz || this.ct) {
+                        this.cr = ((this.bt == 0) ? 2 : 1);
+                    }
+                    else if (this.cx || this.cv) {
+                        this.cr = ((this.bt == 0) ? 3 : 4);
+                    }
+                    else if (this.cw || this.cs) {
+                        this.cr = ((this.bt == 0) ? 4 : 3);
+                    }
+                    if (this.cr != 0) {
+                        this.a4(this.cr);
+                        this.cr = 0;
+                        break;
+                    }
+                    break;
+                }
+                break;
+            }
+            case 2: {
+                if (this.bo >= 12) {
+                    this.a0(1);
+                    break;
+                }
+                break;
+            }
+            case 4: {
+                if (this.bo <= this.b6) {
+                    break;
+                }
+                if (this.bt == 1) {
+                    this.bp += i.c2[this.b8] - i.c2[this.ca];
+                    if (this.bs == 1 && this.c_ < 3) {
+                        i.h.h(i.c2[this.b8] - i.c2[this.ca]);
+                    }
+                }
+                else {
+                    this.bq += i.c2[11 - this.b8] - i.c2[11 - this.ca];
+                    if (this.bs == 0 && this.c_ < 3) {
+                        i.h.h(i.c2[11 - this.b8] - i.c2[11 - this.ca]);
+                    }
+                }
+*)
+                IF (b8 < 11) & (b8 > 0) THEN
+                    IF (b9 > 0) & (b9 < 15) THEN
+                        cell[b8 * 16 + b9] := b7;
+                    END;
+                    A0(5);(*
+                    break;*)
+                END;(*
+                this.a0(3);
+            }
+            case 101: {
+                if (this.b2 > this.b4) {
+                    this.a1(0);
+                }
+                if (this.b1 > this.b3) {
+                    this.a1(1);
+                    break;
+                }
+                break;
+            }
+            case 3: {
+                if (this.bo >= 8) {
+                    this.a0(5);
+                    break;
+                }
+                break;
+            }
+            case 102: {
+                if (this.bo >= 10) {
+                    this.az(false);
+                    break;
+                }
+                break;
+            }
+            case 6: {
+                if (this.bo >= 10) {
+                    this.a0(5);
+                    break;
+                }
+                break;
+            }
+            case 5: {
+                if (this.bo >= 1) {
+                    this.bc();
+                    break;
+                }
+                break;
+            }
+            case 7: {
+                if (this.bo >= 20) {
+                    this.a_();
+                    break;
+                }
+                break;
+            }
+            case 50:
+            case 51:
+            case 52: {
+                if (this.bo >= 10) {
+                    this.a0(1);
+                    this.cr = 0;
+                    break;
+                }
+                break;
+            }
+            case 53: {
+                if (this.bo < 10) {
+                    break;
+                }
+                ++this.ch;
+                if (this.ch < 13) {
+                    this.a0(53);
+                    break;
+                }
+                this.a0(5);
+                break;
+            }
+        }*)
+    END Av;
+
+(*    public final String au(final int n) {
+        if (this.c_ == 3) {
+            return "Player" + (n + 1);
+        }
+        if (n == this.bs) {
+            return "You";
+        }
+        return "Team CPU";
+    }
+    
+    public final void at(final Graphics graphics) {
+        if (this.bl) {
+            return;
+        }
+        graphics.clipRect(0, 0, 120, 142);
+        Main.a0.ah();
+        Main.a0.ai();
+        if (this.bn == 3) {
+            if (this.bo > 7) {
+                this.bo = 7;
+            }
+            graphics.drawImage(Main.a0.be[this.bo], 12, 35, 20);
+        }
+        else {
+            if (this.bn == 102 || this.bn == 101) {
+                if (this.bn == 101 || Main.a0.a5) {
+                    for (int i = 0; i < this.b0; ++i) {
+                        Main.a0.ae(i.c6[i], i.c5[i], this.bs);
+                    }
+                    for (int j = 0; j < this.b_; ++j) {
+                        Main.a0.ae(i.c4[j], i.c3[j], this.bs);
+                    }
+                }
+                if (this.b0 < 23) {
+                    Main.a0.ad(this.bz * 6 + this.a6(this.bv, this.b2 * 6), this.bx * 6 + this.a5(this.bv, this.b2 * 6), this.bs, (this.b2 < this.b4 / 2) ? (8 * this.b2 / this.b4) : (8 * (this.b4 - this.b2) / this.b4));
+                }
+                if (this.b_ < 23) {
+                    Main.a0.ad(this.by * 6 + this.a6(this.bu, this.b1 * 6), this.bw * 6 + this.a5(this.bu, this.b1 * 6), this.bs, (this.b1 < this.b3 / 2) ? (8 * this.b1 / this.b3) : (8 * (this.b3 - this.b1) / this.b3));
+                }
+                ++this.b2;
+                ++this.b1;
+                ++this.bo;
+                return;
+            }
+            int k;
+            for (int n = k = 0; k < 12; ++k) {
+                for (int l = 0; l < 16; ++l, ++n) {
+                    if (this.bj[n] > 0) {
+                        Main.a0.ae(l, k, this.bj[n] - 1);
+                    }
+                }
+            }
+            if (this.bn == 4) {
+                int n2 = this.cb * 6 + this.a6(this.cd, this.bo * 2);
+                int n3 = this.ca * 6 + this.a5(this.cd, this.bo * 2);
+                int n4;
+                if (this.bo < this.b6 / 2) {
+                    n4 = 8 * this.bo / this.b6;
+                }
+                else {
+                    n4 = 8 * (this.b6 - this.bo) / this.b6;
+                }
+                if (this.bs == 1) {
+                    n2 = 96 - n2 - 6;
+                    n3 = 72 - n3 - 6;
+                }
+                Main.a0.ad(n2, n3, this.b7 - 1, n4);
+            }
+            if (this.bn != 100 && this.bn != 5 && this.bn != 7 && this.bn != 101 && this.bn != 102) {
+                if (this.bn == 2) {
+                    if (this.bo < 4) {
+                        if ((this.bo / 2 & 0x1) == 0x0) {
+                            Main.a0.ab(0);
+                        }
+                    }
+                    else if (this.bo < 8) {
+                        Main.a0.ab(0);
+                    }
+                    else {
+                        Main.a0.ab(this.bo - 8);
+                    }
+                }
+                else {
+                    Main.a0.ac(this.cf, this.ce, this.cd - 1);
+                }
+            }
+            switch (this.bn) {
+                case 6: {
+                    if (this.bt == this.bs && this.c_ < 3) {
+                        h.aj(this.au(this.bt) + " don't have a move. Turn forfeited.");
+                        break;
+                    }
+                    h.aj(this.au(this.bt) + " doesn't have a move. Turn forfeited.");
+                    break;
+                }
+                case 7: {
+                    h.aj("No more moves can be made. Let's check the scores!");
+                    break;
+                }
+                case 50: {
+                    h.aj("You can't kick the opponent's ball.");
+                    break;
+                }
+                case 51: {
+                    h.aj("You can't kick over another ball.");
+                    break;
+                }
+                case 52: {
+                    h.aj("Kick the ball towards the opponent's goal.");
+                    break;
+                }
+                case 53: {
+                    h.aj(i.cg[this.ch]);
+                    break;
+                }
+                case 5: {
+                    graphics.setColor(41120);
+                    graphics.setFont(h.bd);
+                    graphics.fillRect(12, 113, 96, 23);
+                    graphics.setColor(16777215);
+                    graphics.drawString("Please wait...", 60, (249 - h.bc) / 2, 0x10 | 0x1);
+                    break;
+                }
+            }
+        }
+        ++this.bo;
+    }
+
+}
+
+*)
+
+END AI.

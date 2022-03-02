@@ -1,0 +1,15 @@
+MODULE [noinit] Rsrc;  
+TYPE
+  TSprites = ARRAY 37 OF CHAR;
+CONST
+  Sprites* = TSprites (
+    1X, CHR(8*4 + 0 + 3), 0X, 2X, 2X,  (* Ball *)
+    000X, 007X, 01FX, 03FX, 039X, 073X, 077X, 07FX,
+    000X, 0E0X, 0F8X, 0FCX, 0FCX, 0FEX, 0FEX, 0FEX,
+    07FX, 07FX, 07FX, 03FX, 03FX, 01FX, 007X, 000X,
+    0FEX, 0FEX, 0FEX, 0FCX, 0FCX, 0F8X, 0E0X, 000X
+  );
+
+  Ball* = 1;
+
+END Rsrc.             
